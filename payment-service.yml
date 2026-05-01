@@ -1,2 +1,2 @@
-# booking-service specific configuration
+# payment-service specific configuration
 # eureka config is inherited from application.yml
