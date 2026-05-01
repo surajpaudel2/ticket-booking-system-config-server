@@ -1,2 +1,2 @@
 testing:
-  client: "Hello from the spring application"
+  client: "Hello, this is testing from the client side."
