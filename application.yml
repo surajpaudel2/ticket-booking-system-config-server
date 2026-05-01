@@ -1,4 +1,2 @@
-# Shared configuragations with all the services. 
-
 testing:
-  client: "Hello, this is testing from the client side".
+  client: "Hello, this is testing from the client side."
