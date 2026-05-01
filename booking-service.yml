@@ -1,3 +1,9 @@
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URI:http://localhost:8080/eureka/}
+    register-with-eureka: true
+    fetch-registry: true
 
 testing:
   client: "Hello, this is testing from the client side."
