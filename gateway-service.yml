@@ -1,2 +1,125 @@
-# gateway-service specific configuration
-# eureka config is inherited from application.yml
+# ─────────────────────────────────────────────────────────────
+# GATEWAY SERVICE CONFIGURATION
+# Eureka config inherited from application.yml in config-server
+# ─────────────────────────────────────────────────────────────
+
+spring:
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          # Auto-creates routes for all Eureka-registered services.
+          # Explicit routes in RouteConfig.java take priority.
+          # Set false in production to prevent accidental exposure.
+          enabled: true
+          # Converts BOOKING-SERVICE → booking-service in route paths
+          lower-case-service-id: true
+      httpclient:
+        # Connection pool settings for downstream calls
+        connect-timeout: 3000
+        response-timeout: 15s
+  data:
+    redis:
+      # Redis used exclusively for rate limiter token bucket storage
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
+# ─────────────────────────────────────────────────────────────
+# CIRCUIT BREAKER — Resilience4j
+# Each downstream service has a named CB instance.
+# Gateway references these names in RouteConfig.java.
+# States: CLOSED (normal) → OPEN (fast fail) → HALF-OPEN (recovery test)
+# ─────────────────────────────────────────────────────────────
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        # COUNT_BASED: failure rate calculated over last N calls (not time window)
+        sliding-window-type: COUNT_BASED
+        sliding-window-size: 10
+        # Opens circuit when 50% of last 10 calls fail
+        failure-rate-threshold: 50
+        # Stays OPEN for 10s before allowing test calls (HALF-OPEN)
+        wait-duration-in-open-state: 10s
+        # Number of test calls allowed in HALF-OPEN before deciding recovery
+        permitted-number-of-calls-in-half-open-state: 3
+    instances:
+      authServiceCB:
+        base-config: default
+      userServiceCB:
+        base-config: default
+      bookingServiceCB:
+        base-config: default
+        # More lenient — booking involves DB writes and seat locking under load
+        sliding-window-size: 20
+        failure-rate-threshold: 60
+        wait-duration-in-open-state: 15s
+      paymentServiceCB:
+        base-config: default
+        # Strictest — trips at 30% failures, waits 30s to recover
+        # Prevents premature retries against a partially healthy payment processor
+        failure-rate-threshold: 30
+        wait-duration-in-open-state: 30s
+      adminServiceCB:
+        base-config: default
+
+  timelimiter:
+    configs:
+      default:
+        # Max time to wait for a downstream response before counting as failure
+        timeout-duration: 5s
+    instances:
+      paymentServiceCB:
+        # Payment processors (e.g. Stripe) can legitimately take longer
+        timeout-duration: 10s
+
+# ─────────────────────────────────────────────────────────────
+# RATE LIMITER — Redis Token Bucket (per route group)
+# replenish-rate: tokens added per second (steady state limit)
+# burst-capacity: max tokens in bucket (handles traffic spikes)
+# Values injected into RouteConfig.java via @Value
+# ─────────────────────────────────────────────────────────────
+rate-limiter:
+  public:
+    # Unauthenticated routes — keyed by IP address
+    replenish-rate: 20
+    burst-capacity: 40
+  authenticated:
+    # Protected routes — keyed by userId from JWT
+    replenish-rate: 100
+    burst-capacity: 200
+  admin:
+    # Admin routes — lower limit, admin ops should be low volume
+    replenish-rate: 50
+    burst-capacity: 100
+
+# ─────────────────────────────────────────────────────────────
+# ACTUATOR — exposes circuit breaker state for monitoring
+# /actuator/health        → service health
+# /actuator/circuitbreakers → CB state per instance (OPEN/CLOSED/HALF-OPEN)
+# ─────────────────────────────────────────────────────────────
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,circuitbreakers
+
+# ─────────────────────────────────────────────────────────────
+# SWAGGER — API docs UI
+# /api-docs       → raw OpenAPI JSON spec
+# /swagger-ui.html → interactive UI (permitted in SecurityConfig)
+# ─────────────────────────────────────────────────────────────
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+# ─────────────────────────────────────────────────────────────
+# JWT — shared secret for token verification only
+# auth-service signs tokens with this same secret
+# gateway only verifies — never generates tokens
+# Inject JWT_SECRET env variable in production — never commit plain value
+# ─────────────────────────────────────────────────────────────
+jwt:
+  secret: ${JWT_SECRET:your-super-secret-key-must-be-32-chars-min}
