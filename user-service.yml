@@ -8,7 +8,7 @@ spring:
   # DATASOURCE — MySQL
   # ─────────────────────────────────────────────────────────────
   datasource:
-    url: jdbc:mysql://${MYSQL_HOST:localhost}:${MYSQL_PORT:3306}/${MYSQL_USER_DB:user_service_db}?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+    url: jdbc://localhost:3306/user_service_db
     username: ${MYSQL_USERNAME:root}
     password: ${MYSQL_PASSWORD:root}
     driver-class-name: com.mysql.cj.jdbc.Driver
