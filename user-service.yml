@@ -8,10 +8,10 @@ spring:
   # DATASOURCE — MySQL
   # ─────────────────────────────────────────────────────────────
   datasource:
-    url: jdbc://localhost:3306/user_service_db
+    url: jdbc:mysql://localhost:3306/user_service_db
     username: ${MYSQL_USERNAME:root}
     password: ${MYSQL_PASSWORD:root}
-    driver-class-name: com.mysql.cj.jdbc.Driver
+#    driver-class-name: com.mysql.cj.jdbc.Driver
 
   # ─────────────────────────────────────────────────────────────
   # JPA / HIBERNATE
@@ -24,7 +24,7 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQLDialect
-    show-sql: false
+    show-sql: true
 
   # ─────────────────────────────────────────────────────────────
   # REDIS — used for user profile caching (2h TTL)
