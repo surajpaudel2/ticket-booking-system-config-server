@@ -11,7 +11,7 @@ spring:
           # Auto-creates routes for all Eureka-registered services.
           # Explicit routes in RouteConfig.java take priority.
           # Set false in production to prevent accidental exposure.
-          enabled: true
+          enabled: false
           # Converts BOOKING-SERVICE → booking-service in route paths
           lower-case-service-id: true
       httpclient:
