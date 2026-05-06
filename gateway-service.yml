@@ -21,8 +21,8 @@ spring:
   data:
     redis:
       # Redis used exclusively for rate limiter token bucket storage
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6379}
+      host: localhost
+      port: 6379
 
 # ─────────────────────────────────────────────────────────────
 # CIRCUIT BREAKER — Resilience4j
