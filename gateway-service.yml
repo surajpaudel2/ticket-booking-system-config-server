@@ -21,8 +21,8 @@ spring:
   data:
     redis:
       # Redis used exclusively for rate limiter token bucket storage
-      host: localhost
-      port: 6379
+      host: {REDIS_HOST}
+      port: {REDIS_PORT}
 
 # ─────────────────────────────────────────────────────────────
 # CIRCUIT BREAKER — Resilience4j
@@ -119,7 +119,6 @@ springdoc:
 # JWT — shared secret for token verification only
 # auth-service signs tokens with this same secret
 # gateway only verifies — never generates tokens
-# Inject JWT_SECRET env variable in production — never commit plain value
 # ─────────────────────────────────────────────────────────────
 jwt:
-  secret: ${JWT_SECRET:your-super-secret-key-must-be-32-chars-min}
+  secret: ${JWT_SECRET}
