@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir /s /b \"C:\\\\Users\\\\Suraj Paudel\\\\OneDrive\\\\Desktop\\\\ticket-booking-system\\\\gateway-service\\\\src\\\\main\\\\java\\\\*.java\")",
+      "Bash(dir *)"
+    ]
+  }
+}
