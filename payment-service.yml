@@ -14,9 +14,9 @@ server:
 # variables in production. Schema auto-validated on startup.
 # =============================================================
   datasource:
-    url: jdbc:mysql://localhost:3306/payment_service_db
-    username: ${DB_USERNAME:root}
-    password: ${DB_PASSWORD:root}
+    url: ${MYSQL_URL}
+    username: ${MYSQL_USERNAME:root}
+    password: ${MYSQL_PASSWORD:root}
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     hibernate:
@@ -61,10 +61,8 @@ server:
               auto-bind-dlq: true
               dlq-ttl: 60000
   rabbitmq:
-    host: ${RABBITMQ_HOST:localhost}
-    port: ${RABBITMQ_PORT:5672}
-    username: ${RABBITMQ_USERNAME:guest}
-    password: ${RABBITMQ_PASSWORD:guest}
+    host: ${RABBITMQ_HOST}
+    port: ${RABBITMQ_PORT}
 
 # =============================================================
 # STRIPE CONFIGURATION
@@ -77,8 +75,8 @@ server:
 # via environment variables or Vault before any real traffic.
 # =============================================================
 stripe:
-  secret-key: "Left to make with cipher"
-  webhook-secret: "Left to make with cipher"
+  secret-key: ${STRIPE_SECRET_KEY}
+  webhook-secret: ${STRIPE_WEBHOOK_SECRET}
 
 # =============================================================
 # EUREKA
