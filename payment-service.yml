@@ -1,57 +1,60 @@
-# =============================================================
-# DATASOURCE
-# MySQL connection settings — credentials injected via environment
-# variables in production. Schema auto-validated on startup.
-# =============================================================
-datasource:
-  url: ${MYSQL_URL}
-  username: ${MYSQL_USERNAME:root}
-  password: ${MYSQL_PASSWORD:root}
-  driver-class-name: com.mysql.cj.jdbc.Driver
-jpa:
-  hibernate:
-    ddl-auto: update
-  show-sql: true
-  properties:
+spring:
+  # =============================================================
+  # DATASOURCE
+  # MySQL connection settings — credentials injected via environment
+  # variables in production. Schema auto-validated on startup.
+  # =============================================================
+  datasource:
+    url: ${MYSQL_URL}
+    username: ${MYSQL_USERNAME:root}
+    password: ${MYSQL_PASSWORD:root}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
     hibernate:
-      dialect: org.hibernate.dialect.MySQLDialect
-      format_sql: true
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+        format_sql: true
 
-threads:
-  virtual:
-    enabled: true
+  threads:
+    virtual:
+      enabled: true
 
-# =============================================================
-# RABBITMQ AND SPRING CLOUD STREAM
-# RabbitMQ is the message broker for all async event publishing.
-# Spring Cloud Stream functional model — bindings declared below.
-# Naming convention: {functionName}-out-0 for producers.
-# payment.succeeded  — consumed by booking-service (confirm) and notification-service
-# payment.failed     — consumed by booking-service (release seats and mark FAILED)
-# TODO: Left to manage DLQ.
-# =============================================================
-cloud:
-  stream:
-    bindings:
-      paymentSucceeded-out-0:
-        destination: payment.succeeded
-        group: payment-succeeded-group
-      paymentFailed-out-0:
-        destination: payment.failed
-        group: payment-failed-group
-    rabbit:
+  # =============================================================
+  # RABBITMQ AND SPRING CLOUD STREAM
+  # RabbitMQ is the message broker for all async event publishing.
+  # Spring Cloud Stream functional model — bindings declared below.
+  # Naming convention: {functionName}-out-0 for producers.
+  # payment.succeeded  — consumed by booking-service (confirm) and notification-service
+  # payment.failed     — consumed by booking-service (release seats and mark FAILED)
+  # TODO: Left to manage DLQ.
+  # =============================================================
+  cloud:
+    stream:
       bindings:
         paymentSucceeded-out-0:
-          producer:
-            auto-bind-dlq: true
-            dlq-ttl: 60000
+          destination: payment.succeeded
+          group: payment-succeeded-group
         paymentFailed-out-0:
-          producer:
-            auto-bind-dlq: true
-            dlq-ttl: 60000
-rabbitmq:
-  host: ${RABBITMQ_HOST}
-  port: ${RABBITMQ_PORT}
+          destination: payment.failed
+          group: payment-failed-group
+      rabbit:
+        bindings:
+          paymentSucceeded-out-0:
+            producer:
+              auto-bind-dlq: true
+              dlq-ttl: 60000
+          paymentFailed-out-0:
+            producer:
+              auto-bind-dlq: true
+              dlq-ttl: 60000
+
+  rabbitmq:
+    host: ${RABBITMQ_HOST}
+    port: ${RABBITMQ_PORT}
 
 # =============================================================
 # STRIPE CONFIGURATION
