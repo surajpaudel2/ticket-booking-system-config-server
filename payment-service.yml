@@ -1,2 +1,112 @@
-# payment-service specific configuration
-# eureka config is inherited from application.yml
+# =============================================================
+# APPLICATION
+# Service identity and port configuration
+# =============================================================
+spring:
+  application:
+    name: payment-service
+server:
+  port: 8083
+
+# =============================================================
+# DATASOURCE
+# MySQL connection settings — credentials injected via environment
+# variables in production. Schema auto-validated on startup.
+# =============================================================
+  datasource:
+    url: jdbc:mysql://localhost:3306/payment_service_db
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:root}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+        format_sql: true
+
+  threads:
+    virtual:
+      enabled: true
+
+# =============================================================
+# RABBITMQ AND SPRING CLOUD STREAM
+# RabbitMQ is the message broker for all async event publishing.
+# Spring Cloud Stream functional model — bindings declared below.
+# Naming convention: {functionName}-out-0 for producers.
+# payment.succeeded  — consumed by booking-service (confirm) and notification-service
+# payment.failed     — consumed by booking-service (release seats and mark FAILED)
+  #TODO: Left to manage DLQ.
+
+  # =============================================================
+  cloud:
+    stream:
+      bindings:
+        paymentSucceeded-out-0:
+          destination: payment.succeeded
+          group: payment-succeeded-group
+        paymentFailed-out-0:
+          destination: payment.failed
+          group: payment-failed-group
+      rabbit:
+        bindings:
+          paymentSucceeded-out-0:
+            producer:
+              auto-bind-dlq: true
+              dlq-ttl: 60000
+          paymentFailed-out-0:
+            producer:
+              auto-bind-dlq: true
+              dlq-ttl: 60000
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USERNAME:guest}
+    password: ${RABBITMQ_PASSWORD:guest}
+
+# =============================================================
+# STRIPE CONFIGURATION
+# TEMPORARY — these placeholder values must be replaced with
+# real keys fetched from a secrets manager before going to production.
+# secret-key:      your Stripe secret key (sk_live_... or sk_test_...)
+# webhook-secret:  the signing secret from your Stripe webhook endpoint
+#                  (whsec_...) — used to verify incoming webhook signatures.
+# Both values below use {cipher} as a placeholder only; wire them up
+# via environment variables or Vault before any real traffic.
+# =============================================================
+stripe:
+  secret-key: "Left to make with cipher"
+  webhook-secret: "Left to make with cipher"
+
+# =============================================================
+# EUREKA
+# Service discovery registration.
+# =============================================================
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URI:http://localhost:8761/eureka}
+  instance:
+    prefer-ip-address: true
+
+# =============================================================
+# SPRINGDOC / SWAGGER
+# API documentation available at /swagger-ui.html
+# =============================================================
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+# =============================================================
+# LOGGING
+# DEBUG level for this service package to aid local development.
+# Set to INFO in production profile.
+# =============================================================
+logging:
+  level:
+    com.tbs.paymentservice: DEBUG
+    org.springframework.cloud.stream: DEBUG

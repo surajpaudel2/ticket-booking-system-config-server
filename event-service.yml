@@ -4,9 +4,9 @@
 # =============================================================
 spring:
   application:
-    name: booking-service
+    name: event-service
 server:
-  port: 8082
+  port: 8081
 
 # =============================================================
 # DATASOURCE
@@ -15,7 +15,7 @@ server:
 # =============================================================
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3306/booking_service_db
+    url: jdbc:mysql://localhost:3306/tbs_event
     username: ${DB_USERNAME:root}
     password: ${DB_PASSWORD:root}
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -27,11 +27,6 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.MySQLDialect
         format_sql: true
-
-spring:
-  threads:
-    virtual:
-      enabled: true
 
 # =============================================================
 # REDIS
@@ -52,59 +47,17 @@ spring:
 # model is used — bindings are declared below per function bean name.
 # Naming convention: {functionName}-in-0 for consumers,
 # {functionName}-out-0 for producers.
-#TODO: Left to manage DLQ.
 # =============================================================
 spring:
   cloud:
-    # Lists all Consumer<T> and Supplier<T> function beans that Spring Cloud Stream should bind.
-    # StreamBridge publishers do NOT need to be listed here — only functional consumer beans do.
-    function:
-      definition: paymentSucceeded;paymentFailed
     stream:
       bindings:
-        # --- Outbound: booking-service → notification-service / event-service ---
-        bookingFailed-out-0:
-          destination: booking.failed
-          group: booking-failed-group
-        seatsRelease-out-0:
+        seatsRelease-in-0:
           destination: seats.release
           group: seats-release-group
-        bookingPaymentInitiated-out-0:
-          destination: booking.payment.initiated
-          group: booking-payment-initiated-group
-        bookingExpired-out-0:
-          destination: booking.expired
-          group: booking-expired-group
-        # --- Inbound: payment-service → booking-service ---
-        paymentSucceeded-in-0:
-          destination: payment.succeeded
-          group: booking-payment-succeeded-group
-        paymentFailed-in-0:
-          destination: payment.failed
-          group: booking-payment-failed-group
       rabbit:
         bindings:
-          bookingFailed-out-0:
-            consumer:
-              auto-bind-dlq: true
-              dlq-ttl: 60000
-          seatsRelease-out-0:
-            consumer:
-              auto-bind-dlq: true
-              dlq-ttl: 60000
-          bookingPaymentInitiated-out-0:
-            consumer:
-              auto-bind-dlq: true
-              dlq-ttl: 60000
-          bookingExpired-out-0:
-            consumer:
-              auto-bind-dlq: true
-              dlq-ttl: 60000
-          paymentSucceeded-in-0:
-            consumer:
-              auto-bind-dlq: true
-              dlq-ttl: 60000
-          paymentFailed-in-0:
+          seatsRelease-in-0:
             consumer:
               auto-bind-dlq: true
               dlq-ttl: 60000
@@ -139,5 +92,5 @@ springdoc:
 # =============================================================
 logging:
   level:
-    com.tbs.bookingservice: DEBUG
+    com.tbs.eventservice: DEBUG
     org.springframework.cloud.stream: DEBUG
