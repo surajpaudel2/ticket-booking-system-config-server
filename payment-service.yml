@@ -1,14 +1,4 @@
 # =============================================================
-# APPLICATION
-# Service identity and port configuration
-# =============================================================
-spring:
-  application:
-    name: payment-service
-server:
-  port: 8083
-
-# =============================================================
 # DATASOURCE
 # MySQL connection settings — credentials injected via environment
 # variables in production. Schema auto-validated on startup.
