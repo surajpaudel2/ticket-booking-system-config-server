@@ -35,9 +35,6 @@ spring:
               auto-bind-dlq: true
               dlq-ttl: 60000
 
-server:
-  port: 8081
-
 # =============================================================
 # DATASOURCE
 # MySQL connection settings — credentials injected via environment
