@@ -1,36 +1,64 @@
-spring:
-  datasource:
-    url: ${MYSQL_URL}
-    username: ${MYSQL_USERNAME}
-    password: ${MYSQL_PASSWORD}
-    driver-class-name: com.mysql.cj.jdbc.Driver
-  jpa:
-    hibernate:
-      ddl-auto: update
-    show-sql: false
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.MySQLDialect
-#  flyway:
-#    enabled: true
-#    locations: classpath:db/migration
-  cloud:
-    openfeign:
-      client:
-        config:
-          user-service:
-            connect-timeout: 3000
-            read-timeout: 5000
-
+# ===================================================================
+# 1. SECURITY & AUTHENTICATION (JWT)
+# ===================================================================
 jwt:
   secret: ${JWT_SECRET}
+  # Access token validity window (900,000 ms = 15 minutes)
   access-token-expiry-ms: 900000
+  # Refresh token validity window
   refresh-token-expiry-days: 7
 
+# ===================================================================
+# 2. API DOCUMENTATION (SpringDoc / Swagger UI)
+# ===================================================================
 springdoc:
   api-docs:
     path: /v3/api-docs
   swagger-ui:
     path: /swagger-ui.html
+    # Allows testing endpoints directly from the Swagger UI
     try-it-out-enabled: true
+    # Sorts endpoints by HTTP method (GET, POST, PUT, DELETE)
     operations-sorter: method
+
+# ===================================================================
+# 3. SPRING BOOT CORE CONFIGURATION
+# ===================================================================
+spring:
+
+  # -----------------------------------------------------------------
+  # 3.a. Database & Persistence (MySQL & Hibernate)
+  # -----------------------------------------------------------------
+  datasource:
+    url: ${MYSQL_URL}
+    username: ${MYSQL_USERNAME}
+    password: ${MYSQL_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      # Note: 'update' is useful for dev. Consider 'validate' or 'none' for production.
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+
+  # Database Migrations (Uncomment when you are ready to enforce Flyway)
+  # flyway:
+  #   enabled: true
+  #   locations: classpath:db/migration
+
+  # -----------------------------------------------------------------
+  # 3.b. Spring Cloud & Microservices (OpenFeign)
+  # -----------------------------------------------------------------
+  cloud:
+    openfeign:
+      client:
+        config:
+          # Specific configuration for the user-service client
+          user-service:
+            # Time to establish the connection (in milliseconds)
+            connect-timeout: 3000
+            # Time to wait for a response after connection (in milliseconds)
+            read-timeout: 5000

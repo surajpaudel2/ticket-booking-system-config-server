@@ -1,10 +1,23 @@
+# ===================================================================
+# SERVICE DISCOVERY CONFIGURATION (Netflix Eureka)
+# ===================================================================
 eureka:
   client:
+    # Service URL configuration for discovery server registration
     service-url:
       defaultZone: ${EUREKA_URI:http://localhost:8080}/eureka/
+
+    # Enable service registration and registry fetching for client-side load balancing
     register-with-eureka: true
     fetch-registry: true
+
   instance:
+    # Highly recommended for containerized environments (Docker/K8s).
+    # Registers the service using its IP address instead of an internal/random hostname.
     prefer-ip-address: true
+
+    # Heartbeat and Eviction timers (Default values shown below)
+    # How often (in seconds) the client sends a heartbeat to Eureka to prove it's alive
     lease-renewal-interval-in-seconds: 30
+    # How long (in seconds) the Eureka server waits since the last heartbeat before removing this instance
     lease-expiration-duration-in-seconds: 90

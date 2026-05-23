@@ -1,15 +1,25 @@
-# =============================================================
-# APPLICATION
-# Service identity and port configuration
-# =============================================================
+# ===================================================================
+# 1. CORE APPLICATION CONFIGURATION
+# ===================================================================
 spring:
   application:
     name: booking-service
+
+  # Enable Java 21 Virtual Threads for highly concurrent operations
+  threads:
+    virtual:
+      enabled: true
+
+  # ===================================================================
+  # 2. DATA & PERSISTENCE (MySQL & Hibernate)
+  # Credentials injected via environment variables. Schema auto-validated.
+  # ===================================================================
   datasource:
     url: ${MYSQL_URL}
     username: ${MYSQL_USERNAME}
     password: ${MYSQL_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
+
   jpa:
     hibernate:
       ddl-auto: update
@@ -18,22 +28,32 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.MySQLDialect
         format_sql: true
-  threads:
-    virtual:
-      enabled: true
+
+  # ===================================================================
+  # 3. CACHING & DISTRIBUTED LOCKS (Redis)
+  # Caches user contact details and the booking TTL window.
+  # ===================================================================
   data:
     redis:
       host: ${REDIS_HOST}
       port: ${REDIS_PORT}
+
+  # ===================================================================
+  # 4. MESSAGING & EVENT STREAMING (RabbitMQ & Cloud Stream)
+  # Message broker for async event publishing and consumption.
+  # Naming convention: {functionName}-in-0 (consumers), -out-0 (producers).
+  # ===================================================================
   rabbitmq:
     host: ${RABBITMQ_HOST}
     port: ${RABBITMQ_PORT}
+
   cloud:
     function:
       definition: paymentSucceeded;paymentFailed
+
     stream:
       bindings:
-        # --- Outbound: booking-service → notification-service / event-service ---
+        # --- Outbound: booking-service -> notification-service / event-service ---
         bookingFailed-out-0:
           destination: booking.failed
           group: booking-failed-group
@@ -46,13 +66,16 @@ spring:
         bookingExpired-out-0:
           destination: booking.expired
           group: booking-expired-group
-        # --- Inbound: payment-service → booking-service ---
+
+        # --- Inbound: payment-service -> booking-service ---
         paymentSucceeded-in-0:
           destination: payment.succeeded
           group: booking-payment-succeeded-group
         paymentFailed-in-0:
           destination: payment.failed
           group: booking-payment-failed-group
+
+      # Dead Letter Queue (DLQ) Configuration for RabbitMQ Bindings
       rabbit:
         bindings:
           bookingFailed-out-0:
@@ -80,34 +103,10 @@ spring:
               auto-bind-dlq: true
               dlq-ttl: 60000
 
-# =============================================================
-# DATASOURCE
-# MySQL connection settings — credentials injected via environment
-# variables in production. Schema auto-validated on startup.
-# =============================================================
-
-# =============================================================
-# REDIS
-# Used for caching and distributed locking.
-# booking-service: caches user contact details and booking TTL window
-# event-service: caches fixture/event data and manages seat lock keys
-# =============================================================
-
-# =============================================================
-# RABBITMQ AND SPRING CLOUD STREAM
-# RabbitMQ is the message broker for all async event publishing
-# and consumption in this service. Spring Cloud Stream functional
-# model is used — bindings are declared below per function bean name.
-# Naming convention: {functionName}-in-0 for consumers,
-# {functionName}-out-0 for producers.
-#TODO: Left to manage DLQ.
-# =============================================================
-
-# =============================================================
-# EUREKA
-# Service discovery registration. This service registers itself
-# with the Eureka server so other services can locate it by name.
-# =============================================================
+# ===================================================================
+# 5. SERVICE DISCOVERY (Eureka)
+# Registers with Eureka server so other services can locate it by name.
+# ===================================================================
 eureka:
   client:
     service-url:
@@ -115,22 +114,29 @@ eureka:
   instance:
     prefer-ip-address: true
 
-# =============================================================
-# SPRINGDOC / SWAGGER
-# API documentation available at /swagger-ui.html
-# Grouped by service name for multi-service documentation clarity.
-# =============================================================
+
+# ===================================================================
+# 6. LOMBOK CONFIGURATION
+# Configure Lombok to preserve custom annotations like @Qualifier
+# ===================================================================
+lombok:
+  copyableAnnotations: org.springframework.beans.factory.annotation.Qualifier
+
+# ===================================================================
+# 7. API DOCUMENTATION (SpringDoc / Swagger)
+# Available at /swagger-ui.html. Grouped for multi-service clarity.
+# ===================================================================
 springdoc:
   api-docs:
     path: /api-docs
   swagger-ui:
     path: /swagger-ui.html
 
-# =============================================================
-# LOGGING
+# ===================================================================
+# 8. OBSERVABILITY & LOGGING
 # DEBUG level for this service package to aid local development.
 # Set to INFO in production profile.
-# =============================================================
+# ===================================================================
 logging:
   level:
     com.tbs.bookingservice: DEBUG

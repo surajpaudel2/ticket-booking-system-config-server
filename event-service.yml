@@ -92,3 +92,9 @@ logging:
   level:
     com.tbs.eventservice: DEBUG
     org.springframework.cloud.stream: DEBUG
+
+fixture:
+  lock:
+    max-attempts: 5
+    initial-wait-ms: 50
+    max-wait-ms: 500
