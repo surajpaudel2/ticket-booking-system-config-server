@@ -27,6 +27,8 @@ spring:
     port: ${RABBITMQ_PORT}
   cloud:
     stream:
+      function:
+        definition: seatsRelease
       bindings:
         seatsRelease-in-0:
           destination: seats.release

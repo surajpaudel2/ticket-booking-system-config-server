@@ -1,2 +1,98 @@
-# notification-service specific configuration
-# eureka config is inherited from application.yml
+# ===================================================================
+# 1. CORE APPLICATION CONFIGURATION
+# ===================================================================
+spring:
+  application:
+    name: notification-service
+
+  # ===================================================================
+  # 2. MAIL (JavaMail / SMTP)
+  # Credentials injected via environment variables.
+  # ===================================================================
+  mail:
+    host: ${MAIL_HOST}
+    port: ${MAIL_PORT}
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+
+  # ===================================================================
+  # 3. MESSAGING BROKER (RabbitMQ)
+  # Connection config for the RabbitMQ binder.
+  # ===================================================================
+  rabbitmq:
+    host: ${RABBITMQ_HOST}
+    port: ${RABBITMQ_PORT}
+
+  # ===================================================================
+  # 4. MESSAGING & EVENT STREAMING (Cloud Stream)
+  # All bindings are inbound — notification-service only consumes.
+  # Naming convention: {functionName}-in-0 (consumers).
+  # ===================================================================
+  cloud:
+    function:
+      definition: bookingExpired;bookingAttemptNudge;bookingReminder;bookingFailed;paymentInitiated;bookingConfirmed
+
+    stream:
+      bindings:
+        # --- Inbound: booking-service / payment-service -> notification-service ---
+        bookingExpired-in-0:
+          destination: booking.expired
+          group: notification-booking-expired-group
+        bookingAttemptNudge-in-0:
+          destination: booking.attempted.nudge
+          group: notification-booking-attempted-nudge-group
+        bookingReminder-in-0:
+          destination: booking.reminder
+          group: notification-booking-reminder-group
+        bookingFailed-in-0:
+          destination: booking.failed
+          group: notification-booking-failed-group
+        paymentInitiated-in-0:
+          destination: payment.initiated
+          group: notification-payment-initiated-group
+        bookingConfirmed-in-0:
+          destination: booking.confirmed
+          group: notification-booking-confirmed-group
+
+      # Dead Letter Queue (DLQ) Configuration for RabbitMQ Bindings
+      rabbit:
+        bindings:
+          bookingExpired-in-0:
+            consumer:
+              auto-bind-dlq: true
+              dlq-ttl: 60000
+          bookingAttemptNudge-in-0:
+            consumer:
+              auto-bind-dlq: true
+              dlq-ttl: 60000
+          bookingReminder-in-0:
+            consumer:
+              auto-bind-dlq: true
+              dlq-ttl: 60000
+          bookingFailed-in-0:
+            consumer:
+              auto-bind-dlq: true
+              dlq-ttl: 60000
+          paymentInitiated-in-0:
+            consumer:
+              auto-bind-dlq: true
+              dlq-ttl: 60000
+          bookingConfirmed-in-0:
+            consumer:
+              auto-bind-dlq: true
+              dlq-ttl: 60000
+
+# ===================================================================
+# 5. INTER-SERVICE COMMUNICATION (OpenFeign)
+# Calls event-service and user-service to enrich notification payloads.
+# ===================================================================
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 5000
+        readTimeout: 5000
+        decode404: true
