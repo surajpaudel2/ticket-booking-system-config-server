@@ -78,22 +78,6 @@ spring:
       # Dead Letter Queue (DLQ) Configuration for RabbitMQ Bindings
       rabbit:
         bindings:
-          bookingFailed-out-0:
-            consumer:
-              auto-bind-dlq: true
-              dlq-ttl: 60000
-          seatsRelease-out-0:
-            consumer:
-              auto-bind-dlq: true
-              dlq-ttl: 60000
-          bookingPaymentInitiated-out-0:
-            consumer:
-              auto-bind-dlq: true
-              dlq-ttl: 60000
-          bookingExpired-out-0:
-            consumer:
-              auto-bind-dlq: true
-              dlq-ttl: 60000
           paymentSucceeded-in-0:
             consumer:
               auto-bind-dlq: true
