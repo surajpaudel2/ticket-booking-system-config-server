@@ -54,6 +54,9 @@ spring:
     stream:
       bindings:
         # --- Outbound: booking-service -> notification-service / event-service ---
+        bookingConfirmed-out-0:
+          destination: booking.confirmed
+          group: booking-confirmed-group
         bookingFailed-out-0:
           destination: booking.failed
           group: booking-failed-group
