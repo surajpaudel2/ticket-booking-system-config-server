@@ -41,21 +41,27 @@ spring:
         bookingExpired-in-0:
           destination: booking.expired
           group: notification-booking-expired-group
+          content-type: application/json
         bookingAttemptNudge-in-0:
           destination: booking.attempted.nudge
           group: notification-booking-attempted-nudge-group
+          content-type: application/json
         bookingReminder-in-0:
           destination: booking.reminder
           group: notification-booking-reminder-group
+          content-type: application/json
         bookingFailed-in-0:
           destination: booking.failed
           group: notification-booking-failed-group
+          content-type: application/json
         paymentInitiated-in-0:
           destination: payment.initiated
           group: notification-payment-initiated-group
+          content-type: application/json
         bookingConfirmed-in-0:
           destination: booking.confirmed
           group: notification-booking-confirmed-group
+          content-type: application/json
 
       # Dead Letter Queue (DLQ) Configuration for RabbitMQ Bindings
       rabbit:
